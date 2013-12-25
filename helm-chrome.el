@@ -4,7 +4,7 @@
 ;; Description: Helm Interface for Chrome bookmarks
 ;; Author: KAWABATA, Taichi <kawabata.taichi_at_gmail.com>
 ;; Created: 2013-12-25
-;; Version: 1.131225
+;; Version: 1.131226
 ;; Package-Requires: ((helm "1.0"))
 ;; Keywords: tools
 ;; Human-Keywords: chrome bookmarks
@@ -42,7 +42,12 @@
   :group 'helm)
 
 (defcustom helm-chrome-file
-  "~/Library/Application Support/Google/Chrome/Default/Bookmarks"
+  (car
+   (cl-delete-if-not
+    'file-exists-p
+    '("~/Library/Application Support/Google/Chrome/Default/Bookmarks"
+      "~/AppData/Local/Google/Chrome/User Data/Default/Bookmarks"
+      "~/.config/chromium/Default/Bookmarks")))
   "The bookmark file for Chrome."
   :group 'helm-chrome
   :type 'file)

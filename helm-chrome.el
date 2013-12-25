@@ -7,8 +7,8 @@
 ;; Version: 1.131225
 ;; Package-Requires: ((helm "1.0"))
 ;; Keywords: tools
-;; Human-Keywords: math symbols
-;; URL: https://github.com/kawabata/math-symbols
+;; Human-Keywords: chrome bookmarks
+;; URL: https://github.com/kawabata/helm-chrome
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

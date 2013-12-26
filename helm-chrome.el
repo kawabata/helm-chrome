@@ -1,7 +1,7 @@
-;;; helm-chrome.el --- Chrome bookmarks -*- lexical-binding: t -*-
+;;; helm-chrome.el --- Helm interface for Chrome bookmarks -*- lexical-binding: t -*-
 
 ;; Filename: helm-chrome.el
-;; Description: Helm Interface for Chrome bookmarks
+;; Description: Helm interface for Chrome bookmarks
 ;; Author: KAWABATA, Taichi <kawabata.taichi_at_gmail.com>
 ;; Created: 2013-12-25
 ;; Version: 1.131226
@@ -25,7 +25,7 @@
 
 ;;; Commentary:
 
-;; Helm Interface for Chrome bookmarks.
+;; Helm interface for Chrome bookmarks.
 ;;
 ;; Warning: Multiple bookmarks with the same name will be overridden.
 ;; This restriction is for better performance.  If we use Bookmark IDs with
@@ -52,52 +52,61 @@
   :group 'helm-chrome
   :type 'file)
 
-(defvar helm-chrome-json nil)
-(defvar helm-chrome-bookmarks (make-hash-table :test 'equal))
+(defvar helm-chrome--json nil)
+(defvar helm-chrome--bookmarks nil)
+(defconst helm-chrome--buffer "*Chrome Bookmarks*")
 
-(defun helm-chrome-add-bookmark (json)
+(defun helm-chrome--add-bookmark (json)
   "Add bookmarks from JSON."
   (cond
    ((assoc 'roots json)
     (dolist (item (cdr (assoc 'roots json)))
-      (helm-chrome-add-bookmark item)))
+      (helm-chrome--add-bookmark item)))
    ((equal (cdr (assoc 'type json)) "folder")
     (cl-loop for item across (cdr (assoc 'children json))
-             do (helm-chrome-add-bookmark item)))
+             do (helm-chrome--add-bookmark item)))
    ((equal (cdr (assoc 'type json)) "url")
     (puthash (cdr (assoc 'name json)) (cdr (assoc 'url json))
-             helm-chrome-bookmarks))))
+             helm-chrome--bookmarks))))
 
-(defun helm-chrome-init ()
-  "Initialize an helm buffer with Chrome Bookmarks."
+(defun helm-chrome-reload-bookmarks ()
+  "Reload Chrome bookmarks."
+  (interactive)
   (unless (file-exists-p helm-chrome-file)
     (error "File %s does not exist" helm-chrome-file))
-  (when (null helm-chrome-json)
-    (setq helm-chrome-json (with-temp-buffer
-                     (insert-file-contents helm-chrome-file)
-                     (json-read)))
-    (helm-chrome-add-bookmark helm-chrome-json))
+  (setq helm-chrome--json (with-temp-buffer
+                           (insert-file-contents helm-chrome-file)
+                           (json-read)))
+  (setq helm-chrome--bookmarks (make-hash-table :test 'equal))
+  (helm-chrome--add-bookmark helm-chrome--json)
+  (let ((buffer (get-buffer helm-chrome--buffer)))
+    (when buffer (kill-buffer buffer))))
+
+(defun helm-chrome--init ()
+  "Initialize an helm buffer with Chrome bookmarks."
+  (when (null helm-chrome--json)
+    (helm-chrome-reload-bookmarks))
   (with-current-buffer (helm-candidate-buffer
-                        (get-buffer-create "*Chrome Bookmarks*"))
-    (cl-loop for name being the hash-keys of helm-chrome-bookmarks
+                        (get-buffer-create helm-chrome--buffer))
+    (cl-loop for name being the hash-keys of helm-chrome--bookmarks
              do (insert name "\n"))))
 
-(defvar helm-source-chrome
-  `((name . "Chrome::Bookmark")
-    (init . helm-chrome-init)
+(defvar helm-chrome-source
+  `((name . "Chrome::Bookmarks")
+    (init . helm-chrome--init)
     (candidates-in-buffer)
     (candidate-number-limit . 9999)
     (action
      ("Browse URL" . (lambda (candidate)
-                       (browse-url (gethash candidate helm-chrome-bookmarks))))
+                       (browse-url (gethash candidate helm-chrome--bookmarks))))
      ("Show URL" . (lambda (candidate)
-                     (message (gethash candidate helm-chrome-bookmarks)))))))
+                     (message (gethash candidate helm-chrome--bookmarks)))))))
 
 ;;;###autoload
 (defun helm-chrome-bookmarks ()
   "Search Chrome Bookmark using `helm'."
   (interactive)
-  (helm '(helm-source-chrome) nil "Find Bookmark: " nil nil))
+  (helm '(helm-chrome-source) nil "Find Bookmark: " nil nil))
 
 (provide 'helm-chrome)
 

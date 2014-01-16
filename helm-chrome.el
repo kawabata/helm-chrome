@@ -5,7 +5,7 @@
 ;; Author: KAWABATA, Taichi <kawabata.taichi_at_gmail.com>
 ;; Created: 2013-12-25
 ;; Version: 1.131226
-;; Package-Requires: ((helm "1.0"))
+;; Package-Requires: ((helm "1.0") (cl-lib "0.3") (emacs "24"))
 ;; Keywords: tools
 ;; Human-Keywords: chrome bookmarks
 ;; URL: https://github.com/kawabata/helm-chrome

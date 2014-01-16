@@ -59,16 +59,17 @@
 
 (defun helm-chrome--add-bookmark (json)
   "Add bookmarks from JSON."
-  (cond
-   ((assoc 'roots json)
-    (dolist (item (cdr (assoc 'roots json)))
-      (helm-chrome--add-bookmark item)))
-   ((equal (cdr (assoc 'type json)) "folder")
-    (cl-loop for item across (cdr (assoc 'children json))
-             do (helm-chrome--add-bookmark item)))
-   ((equal (cdr (assoc 'type json)) "url")
-    (puthash (cdr (assoc 'name json)) (cdr (assoc 'url json))
-             helm-chrome--bookmarks))))
+  (when (and (listp json) (listp (cdr json)))
+    (cond
+     ((assoc 'roots json)
+      (dolist (item (cdr (assoc 'roots json)))
+        (helm-chrome--add-bookmark item)))
+     ((equal (cdr (assoc 'type json)) "folder")
+      (cl-loop for item across (cdr (assoc 'children json))
+               do (helm-chrome--add-bookmark item)))
+     ((equal (cdr (assoc 'type json)) "url")
+      (puthash (cdr (assoc 'name json)) (cdr (assoc 'url json))
+               helm-chrome--bookmarks)))))
 
 (defun helm-chrome-reload-bookmarks ()
   "Reload Chrome bookmarks."

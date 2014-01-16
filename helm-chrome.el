@@ -47,7 +47,8 @@
     'file-exists-p
     '("~/Library/Application Support/Google/Chrome/Default/Bookmarks"
       "~/AppData/Local/Google/Chrome/User Data/Default/Bookmarks"
-      "~/.config/chromium/Default/Bookmarks")))
+      "~/.config/chromium/Default/Bookmarks"
+      "~/.config/google-chrome/Default/Bookmarks")))
   "The bookmark file for Chrome."
   :group 'helm-chrome
   :type 'file)

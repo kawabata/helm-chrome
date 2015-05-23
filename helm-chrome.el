@@ -5,7 +5,7 @@
 ;; Author: KAWABATA, Taichi <kawabata.taichi_at_gmail.com>
 ;; Created: 2013-12-25
 ;; Version: 1.131226
-;; Package-Requires: ((helm "1.0") (cl-lib "0.3") (emacs "24"))
+;; Package-Requires: ((helm "1.5") (cl-lib "0.3") (emacs "24"))
 ;; Keywords: tools
 ;; Human-Keywords: chrome bookmarks
 ;; URL: https://github.com/kawabata/helm-chrome
@@ -55,7 +55,6 @@
 
 (defvar helm-chrome--json nil)
 (defvar helm-chrome--bookmarks nil)
-(defconst helm-chrome--buffer "*Chrome Bookmarks*")
 
 (defun helm-chrome--add-bookmark (json)
   "Add bookmarks from JSON."
@@ -77,38 +76,30 @@
   (unless (file-exists-p helm-chrome-file)
     (error "File %s does not exist" helm-chrome-file))
   (setq helm-chrome--json (with-temp-buffer
-                           (insert-file-contents helm-chrome-file)
-                           (json-read)))
+                            (insert-file-contents helm-chrome-file)
+                            (json-read)))
   (setq helm-chrome--bookmarks (make-hash-table :test 'equal))
-  (helm-chrome--add-bookmark helm-chrome--json)
-  (let ((buffer (get-buffer helm-chrome--buffer)))
-    (when buffer (kill-buffer buffer))))
-
-(defun helm-chrome--init ()
-  "Initialize an helm buffer with Chrome bookmarks."
-  (when (null helm-chrome--json)
-    (helm-chrome-reload-bookmarks))
-  (with-current-buffer (helm-candidate-buffer
-                        (get-buffer-create helm-chrome--buffer))
-    (cl-loop for name being the hash-keys of helm-chrome--bookmarks
-             do (insert name "\n"))))
+  (helm-chrome--add-bookmark helm-chrome--json))
 
 (defvar helm-chrome-source
-  `((name . "Chrome::Bookmarks")
-    (init . helm-chrome--init)
-    (candidates-in-buffer)
-    (candidate-number-limit . 9999)
-    (action
-     ("Browse URL" . (lambda (candidate)
-                       (browse-url (gethash candidate helm-chrome--bookmarks))))
-     ("Show URL" . (lambda (candidate)
-                     (message (gethash candidate helm-chrome--bookmarks)))))))
+  (helm-build-in-buffer-source "Chrome::Bookmarks"
+    :init (lambda () (unless helm-chrome--json
+                       (helm-chrome-reload-bookmarks)))
+    :data (lambda ()
+            (cl-loop for name being the hash-keys of helm-chrome--bookmarks
+                     collect name))
+    :candidate-number-limit 9999
+    :coerce (lambda (candidate) (gethash candidate helm-chrome--bookmarks))
+    :action '(("Browse URL" . browse-url)
+              ("Show URL" . message))))
 
 ;;;###autoload
 (defun helm-chrome-bookmarks ()
   "Search Chrome Bookmark using `helm'."
   (interactive)
-  (helm '(helm-chrome-source) nil "Find Bookmark: " nil nil))
+  (helm :sources 'helm-chrome-source
+        :prompt "Find Bookmark: "
+        :buffer "*helm chrome bookmarks*"))
 
 (provide 'helm-chrome)
 

@@ -75,9 +75,7 @@
   (interactive)
   (unless (file-exists-p helm-chrome-file)
     (error "File %s does not exist" helm-chrome-file))
-  (setq helm-chrome--json (with-temp-buffer
-                            (insert-file-contents helm-chrome-file)
-                            (json-read)))
+  (setq helm-chrome--json (json-read-file helm-chrome-file))
   (setq helm-chrome--bookmarks (make-hash-table :test 'equal))
   (helm-chrome--add-bookmark helm-chrome--json))
 

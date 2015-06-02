@@ -88,7 +88,8 @@
                      collect name))
     :candidate-number-limit 9999
     :coerce (lambda (candidate) (gethash candidate helm-chrome--bookmarks))
-    :action '(("Browse URL" . browse-url)
+    :action '(("Browse URL(s)" . (lambda (_candidate)
+                                   (mapc #'browse-url (helm-marked-candidates))))
               ("Show URL" . message))))
 
 ;;;###autoload

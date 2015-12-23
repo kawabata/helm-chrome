@@ -45,12 +45,14 @@
   (car
    (cl-delete-if-not
     'file-exists-p
-    '("~/Library/Application Support/Google/Chrome/Default/Bookmarks"
+    `("~/Library/Application Support/Google/Chrome/Default/Bookmarks"
       "~/AppData/Local/Google/Chrome/User Data/Default/Bookmarks"
       "~/.config/chromium/Default/Bookmarks"
       "~/.config/google-chrome/Default/Bookmarks"
-      "$LOCALAPPDATA/Google/Chrome/User Data/Default/Bookmarks"
-      "$USERPROFILE/Local Settings/Application Data/Google/Chrome/User Data/Default/Bookmarks"
+      ,(substitute-in-file-name
+        "$LOCALAPPDATA/Google/Chrome/User Data/Default/Bookmarks")
+      ,(substitute-in-file-name
+        "$USERPROFILE/Local Settings/Application Data/Google/Chrome/User Data/Default/Bookmarks")
       )))
   "The bookmark file for Chrome."
   :group 'helm-chrome

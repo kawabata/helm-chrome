@@ -58,6 +58,11 @@
   :group 'helm-chrome
   :type 'file)
 
+(defcustom helm-chrome-use-urls nil
+  "Use bookmark urls as source of the data for helm"
+  :group 'helm-chrome
+  :type 'boolean)
+
 (defvar helm-chrome--json nil)
 (defvar helm-chrome--bookmarks nil)
 
@@ -72,8 +77,17 @@
       (cl-loop for item across (cdr (assoc 'children json))
                do (helm-chrome--add-bookmark item)))
      ((equal (cdr (assoc 'type json)) "url")
-      (puthash (cdr (assoc 'name json)) (cdr (assoc 'url json))
-               helm-chrome--bookmarks)))))
+      (let ((helm-chrome-name
+             (if (and helm-chrome-use-urls
+                      (string-prefix-p  "http" (cdr (assoc 'url json))) t)
+                 (concat (cdr (assoc 'name json)) " [" (cdr (assoc 'url json)) "]")
+               (cdr (assoc 'name json)))))
+        (puthash
+         helm-chrome-name
+         (cdr (assoc 'url json))
+         helm-chrome--bookmarks)))
+     )))
+
 
 (defun helm-chrome-reload-bookmarks ()
   "Reload Chrome bookmarks."
